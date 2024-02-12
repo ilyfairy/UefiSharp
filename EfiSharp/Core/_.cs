@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime;
+using Core.System.Runtime.InteropServices;
 
 namespace System;
 
@@ -18,4 +19,17 @@ internal class StartupCodeHelpersBalabala
 
     [RuntimeExport("RhpFallbackFailFast")]
     static void RhpFallbackFailFast() { while (true) ; }
+    
+
+
+
+    [RuntimeExport("__security_cookie")]
+    static void __security_cookie() { }
+    
+
+    [RuntimeExport("memset")]
+    static unsafe void memset(void* addr, int c, int n)
+    {
+        NativeMemory.Fill(addr, (nuint)n, (byte)c);
+    }
 }

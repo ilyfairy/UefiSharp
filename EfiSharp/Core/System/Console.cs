@@ -81,6 +81,11 @@ public static unsafe class Console
         Write(num);
         Write("\r\n");
     }
+    public static void WriteLine(char* chars)
+    {
+        systemTable->ConOut->OutputString(systemTable->ConOut, chars);
+        Write("\r\n");
+    }
 
     public static void WriteLine(string chars)
     {
@@ -105,9 +110,27 @@ public static unsafe class Console
         }
     }
 
-    public static string ReadLine()
+    public static void ReadLine(char* output, int maxLength, bool isShow)
     {
-        return null;
+        int index = 0;
+        while (true)
+        {
+            char c = ReadKey();
+
+            if (c == '\r')
+            {
+                if (isShow)
+                    WriteLine();
+                return;
+            }    
+
+            if (isShow)
+                Write(c);
+
+            output[index++] = c;
+            if(index >= maxLength)
+                return;
+        }
     }
 
     public static void Clear()

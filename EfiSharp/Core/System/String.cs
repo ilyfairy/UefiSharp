@@ -23,4 +23,33 @@ public unsafe class String : System.Object
 
     //}
 
+    public static bool Equals(char* left, char* right)
+    {
+        int index = 0;
+        while (true)
+        {
+            var a = left[index];
+            var b = right[index];
+            index++;
+
+            if(a == '\0' && b == '\0')
+                return true;
+
+            if(a != b)
+                return false;
+        }
+    }
+
+
+    public static bool Equals(char* left, string right)
+    {
+        fixed(char* rightPtr = right)
+            return Equals(left, rightPtr);
+    }
+
+    public static bool Equals(string left, char* right)
+    {
+        fixed(char* leftPtr = left)
+            return Equals(leftPtr, right);
+    }
 }
