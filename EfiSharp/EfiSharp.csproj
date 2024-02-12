@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>12.0</LangVersion>
+
+    <!--AOT-->
+    <PublishAot>true</PublishAot>
+
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <RuntimeMetadataVersion>v8.0.0</RuntimeMetadataVersion>
+
+    <EntryPointSymbol>EfiMain</EntryPointSymbol>
+    <!--<LinkerSubsystem>EFI_APPLICATION</LinkerSubsystem>-->
+    <!--<IlcSystemModule>CSharpEFI</IlcSystemModule>-->
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="$(ILCompilerPackage)" Version="$(ILCompilerVersion)" />
+  </ItemGroup>
+  
+  <!-- Remove .NET Assembly -->
+  <Target Name="CustomizeReferences" BeforeTargets="BeforeCompile" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" />
+      <ReferencePath Remove="@(ReferencePath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ILCompiler -->
+  <PropertyGroup>
+    <ILCompilerPackage>runtime.win-x64.microsoft.dotnet.ilcompiler</ILCompilerPackage>
+    <ILCompilerVersion>8.0.0</ILCompilerVersion>
+    <IlcExe>$(UserProfile)/.nuget/packages/$(ILCompilerPackage)/$(ILCompilerVersion)/tools/ilc.exe</IlcExe>
+    <RootNamespace />
+  </PropertyGroup>
+
+  <!-- Build EFI -->
+  <Target Name="IlcBuild" AfterTargets="Build">
+    <Exec Command="$(IlcExe) $(OutDir)$(MSBuildProjectName).dll -o $(OutDir)/$(MSBuildProjectName).obj --systemmodule $(MSBuildProjectName) -O"></Exec>
+  </Target>
+  <Target Name="BuildEFI" AfterTargets="IlcBuild">
+    <Exec Command="gcc -Wall -Wextra -e $(EntryPointSymbol) -nostdinc -nostdlib -fno-builtin -Wl,--subsystem,10 -o $(OutDir)BOOTX64.EFI $(OutDir)/$(MSBuildProjectName).obj" />
+  </Target>
+
+</Project>
