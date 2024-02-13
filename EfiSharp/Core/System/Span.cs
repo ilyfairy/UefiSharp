@@ -1,6 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Core.System.Runtime.InteropServices;
 
 namespace System;
 
@@ -11,6 +12,14 @@ public unsafe ref struct Span<T>
     internal readonly T* _reference;
     /// <summary>The number of elements this ReadOnlySpan contains.</summary>
     private readonly int _length;
+
+    public readonly int Length => _length;
+
+    public T this[int index]
+    {
+        get => _reference[index];
+        set => _reference[index] = value;
+    }
 
     public Span(T[]? array)
     {
@@ -38,4 +47,17 @@ public unsafe ref struct Span<T>
     }
 
     public static implicit operator T* (Span<T> span) => span._reference;
+
+    public static bool operator ==(Span<T> left, Span<T> right)
+    {
+        if (left.Length != right.Length)
+            return false;
+
+        if(left._reference == right._reference)
+            return true;
+
+        return true;
+    }
+
+    public static bool operator !=(Span<T> left, Span<T> right) => !(left == right);
 }

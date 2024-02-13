@@ -1,5 +1,8 @@
-﻿namespace EFI.Times;
+﻿using System.Runtime.InteropServices;
 
+namespace EFI.Times;
+
+[StructLayout(LayoutKind.Sequential)]
 public struct EFI_TIME_CAPABILITIES
 {
     /// <summary>

@@ -6,12 +6,19 @@ public static unsafe partial class Unsafe
     // It will do what Unsafe.Add is expected to do. It's just not possible to express it in C#.
     [Intrinsic]
     public static extern ref T Add<T>(ref T source, int elementOffset);
+
     [Intrinsic]
     public static extern ref T Add<T>(ref T source, IntPtr elementOffset);
+
     [Intrinsic]
     public static extern ref TTo As<TFrom, TTo>(ref TFrom source);
+
     [Intrinsic]
     public static extern T As<T>(object o) where T : class;
+    
+    [Intrinsic]
+    public static extern ref T AsRef<T>(in T source);
+
     [Intrinsic]
     public static extern void* AsPointer<T>(ref T value);
 }

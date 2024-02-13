@@ -1,20 +1,27 @@
-﻿namespace EFI.BootServices;
+﻿using System;
+using System.Runtime.InteropServices;
+using EFI.Delegates;
 
+namespace EFI.BootServices;
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe struct EFI_BOOT_SERVICES
 {
-    // The table header for the EFI Boot Services Table.
-    public EFI_TABLE_HEADER Hdr;
+    /// <summary>
+    /// The table header for the EFI Boot Services Table.
+    /// </summary>
+    public EFI_TABLE_HEADER Hdr; // 24 bytes
 
-    //// Task Priority Services
-    //EFI_RAISE_TPL RaiseTPL;
-    //EFI_RESTORE_TPL RestoreTPL;
+    // Task Priority Services  16 bytes
+    public EFI_RAISE_TPL_Delegate RaiseTPL;
+    public EFI_RESTORE_TPL_Delegate RestoreTPL;
 
-    //// Memory Services
-    //EFI_ALLOCATE_PAGES AllocatePages;
-    //EFI_FREE_PAGES FreePages;
-    //EFI_GET_MEMORY_MAP GetMemoryMap;
-    //EFI_ALLOCATE_POOL AllocatePool;
-    //EFI_FREE_POOL FreePool;
+    // Memory Services   40 bytes
+    public EFI_ALLOCATE_PAGES_Delegate AllocatePages;
+    public EFI_FREE_PAGES_Delegate FreePages;
+    public EFI_GET_MEMORY_MAP_Delegate GetMemoryMap;
+    public EFI_ALLOCATE_POOL_Delegate AllocatePool;
+    public delegate* unmanaged<UIntPtr, UIntPtr> FreePool;
 
     //// Event & Timer Services
     //EFI_CREATE_EVENT CreateEvent;

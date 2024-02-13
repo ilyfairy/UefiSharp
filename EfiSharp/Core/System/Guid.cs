@@ -17,4 +17,5 @@ public struct Guid
     public readonly byte _i;  // Do not rename (binary serialization)
     public readonly byte _j;  // Do not rename (binary serialization)
     public readonly byte _k;  // Do not rename (binary serialization)
+    
 }

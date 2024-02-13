@@ -1,18 +1,19 @@
 ﻿#pragma warning disable
 using System.Runtime.InteropServices;
+using Internal;
 
-namespace Internal;
+namespace Internal.Runtime;
 
 public unsafe struct MethodTable
 {
     internal ComponentSize_Flags_0 ComponentSize_Flags;
     /// <summary>
-    /// <see cref="System.Array"/>或<see cref="System.String"/>的元素大小
+    /// <see cref="System.Array"/>或<see cref="string"/>的元素大小
     /// </summary>
     public ref ushort ComponentSize => ref ComponentSize_Flags.ComponentSize; // offset:0
     /// <summary>
     /// EETypeFlags<br/>
-    /// 当前<see cref="MethodTable"/>的Flag (仅适用于非<see cref="System.Array"/>或<see cref="System.String"/>)
+    /// 当前<see cref="MethodTable"/>的Flag (仅适用于非<see cref="System.Array"/>或<see cref="string"/>)
     /// </summary>
     public ref uint Flags => ref ComponentSize_Flags.Flags; // offset:0
 

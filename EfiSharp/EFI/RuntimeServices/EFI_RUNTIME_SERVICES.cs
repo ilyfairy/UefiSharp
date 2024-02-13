@@ -1,17 +1,20 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using EFI.Delegates;
 using EFI.Times;
 
 namespace EFI.RuntimeServices;
 
+[StructLayout(LayoutKind.Sequential)]
 public unsafe readonly struct EFI_RUNTIME_SERVICES
 {
     public readonly EFI_TABLE_HEADER Hdr;
 
     // Time Services
-    public readonly delegate* unmanaged<EFI_TIME*, EFI_TIME_CAPABILITIES*, IntPtr> GetTime;
-    public readonly delegate* unmanaged<EFI_TIME, IntPtr> SetTime;
-    public readonly delegate* unmanaged<bool*, bool*, EFI_TIME*, IntPtr> GetWakeupTime;
-    public readonly delegate* unmanaged<bool, in EFI_TIME, IntPtr> SetWakeupTime;
+    public readonly EFI_GET_TIME_Delegate GetTime;
+    public readonly EFI_SET_TIME_Delegate SetTime;
+    public readonly delegate* unmanaged<bool*, bool*, EFI_TIME*, UIntPtr> GetWakeupTime;
+    public readonly delegate* unmanaged<bool, in EFI_TIME, UIntPtr> SetWakeupTime;
 
     //// Virtual Memory Services
     //public readonly EFI_SET_VIRTUAL_ADDRESS_MAP SetVirtualAddressMap;
@@ -32,9 +35,4 @@ public unsafe readonly struct EFI_RUNTIME_SERVICES
 
     //// Miscellaneous UEFI 2.0 Service
     //public readonly EFI_QUERY_VARIABLE_INFO QueryVariableInfo;
-}
-
-public unsafe struct EfiSetTimeDelegate
-{
-    public delegate* unmanaged<EFI_TIME*, EFI_TIME_CAPABILITIES*, IntPtr> Ptr;
 }

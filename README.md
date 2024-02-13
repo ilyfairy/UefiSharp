@@ -2,6 +2,8 @@
 
 ## Build  
 
+需要[gcc](https://sourceforge.net/projects/mingw-w64/)编译器\(暂时没有使用msvc\), 并且加入到环境变量中
+
 ```C#
 [RuntimeExport(nameof(EfiMain))]
 public static long EfiMain(IntPtr imageHandle, EFI_SYSTEM_TABLE* systemTable)

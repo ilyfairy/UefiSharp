@@ -4,17 +4,35 @@ namespace System;
 
 public unsafe class String : System.Object
 {
-    public const string Empty = "";
+    [Intrinsic]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public static readonly string Empty;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
     private readonly int _stringLength;
 
     public int Length => _stringLength;
 
     private char _firstChar;
 
-    public ref char this[int index]
+    [IndexerName("Chars")]
+    public char this[int index]
     {
-        get => ref Unsafe.Add(ref _firstChar, index);
+        [Intrinsic]
+        get
+        {
+            //if ((uint)index >= (uint)_stringLength)
+            //    ThrowHelper.ThrowIndexOutOfRangeException();
+            return Unsafe.Add(ref _firstChar, (nint)(uint)index /* force zero-extension */);
+        }
     }
+
+
+    //[Intrinsic]
+    //public ref char get_Chars(int index)
+    //{
+    //    return ref Unsafe.Add(ref _firstChar, index);
+    //}
 
     public ref char GetPinnableReference() => ref _firstChar;
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+
+using System;
 
 namespace Internal.Runtime.CompilerHelpers;
 

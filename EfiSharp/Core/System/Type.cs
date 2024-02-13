@@ -7,6 +7,8 @@ namespace System;
 
 public abstract unsafe class Type
 {
+    public abstract Guid GUID { get; }
+
     [Intrinsic]
     public static Type GetTypeFromHandle(RuntimeTypeHandle handle)
     {
@@ -15,13 +17,26 @@ public abstract unsafe class Type
     }
 }
 
-public abstract unsafe class TypeInfo
+public abstract unsafe class TypeInfo : Type
 {
 
 }
 
 public class RuntimeType : TypeInfo
 {
+    [Intrinsic]
+    //[MethodImpl(MethodImplOptions.InternalCall)]
+    private extern void GetGUID(ref Guid result);
+
+    public override Guid GUID
+    {
+        get
+        {
+            Guid guid = default(Guid);
+            this.GetGUID(ref guid);
+            return guid;
+        }
+    }
 
 }
 
@@ -32,6 +47,7 @@ public struct RuntimeTypeHandle
     internal RuntimeTypeHandle(EETypePtr pEEType)
         : this(pEEType.RawValue)
     {
+
     }
 
     private RuntimeTypeHandle(IntPtr value)

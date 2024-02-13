@@ -1,4 +1,4 @@
-﻿using Internal;
+﻿using Internal.Runtime;
 
 namespace System;
 

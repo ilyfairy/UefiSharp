@@ -1,7 +1,16 @@
-﻿namespace System;
+﻿using EFI.RuntimeServices;
+using EFI.Times;
+
+namespace System;
 
 public struct DateTime
 {
+    private static unsafe EFI_RUNTIME_SERVICES* runtimeServices;
+
+    public static unsafe void Initialize(EFI_RUNTIME_SERVICES* efiRuntimeServices) => runtimeServices = efiRuntimeServices;
+
+
+
     // Number of 100ns ticks per time unit
     internal const int MicrosecondsPerMillisecond = 1000;
     private const long TicksPerMicrosecond = 10;
@@ -68,11 +77,18 @@ public struct DateTime
     private const ulong TicksPer6Hours = TicksPerHour * 6;
     private const int March1BasedDayOfNewYear = 306;              // Days between March 1 and January 1
 
-    internal static ReadOnlySpan<uint> DaysToMonth365 => [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
-    internal static ReadOnlySpan<uint> DaysToMonth366 => [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366];
 
-    private static ReadOnlySpan<byte> DaysInMonth365 => [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    private static ReadOnlySpan<byte> DaysInMonth366 => [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    private static readonly (uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint) _DaysToMonth365 = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365);
+    private static readonly (uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint) _DaysToMonth366 = (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366);
+    internal static ReadOnlySpan<uint> DaysToMonth365 => new ReadOnlySpan<uint>(in _DaysToMonth365.Item1, 13);
+    internal static ReadOnlySpan<uint> DaysToMonth366 => new ReadOnlySpan<uint>(in _DaysToMonth366.Item1, 13);
+
+
+    private static (byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte) _DaysInMonth365 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+    private static (byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte) _DaysInMonth366 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+    private static ReadOnlySpan<byte> DaysInMonth365 => new ReadOnlySpan<byte>(in _DaysInMonth365.Item1, 12);
+    private static ReadOnlySpan<byte> DaysInMonth366 => new ReadOnlySpan<byte>(in _DaysInMonth366.Item1, 12);
+
 
     public static readonly DateTime MinValue;
     public static readonly DateTime MaxValue = new DateTime(MaxTicks, DateTimeKind.Unspecified);
@@ -102,6 +118,105 @@ public struct DateTime
 
     //internal static DateTime UnsafeCreate(long ticks) => new DateTime((ulong)ticks);
 
+    private static bool SystemSupportsLeapSeconds => true;
+
+    private ulong UTicks => _dateData & TicksMask;
+
+    public static unsafe DateTime Now
+    {
+        get
+        {
+            EFI_TIME time;
+            EFI_TIME_CAPABILITIES capabilities;
+            var result = runtimeServices->GetTime.Invoke(&time, &capabilities);
+
+            if (!result.IsSuccess)
+                return default;
+
+            return new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second, (int)(time.Nanosecond / 1_000_000), DateTimeKind.Utc);
+        }
+    }
+
+    public int Year
+    {
+        get
+        {
+            // y100 = number of whole 100-year periods since 1/1/0001
+            // r1 = (day number within 100-year period) * 4
+            (uint y100, uint r1) = Math.DivRem(((uint)(UTicks / TicksPer6Hours) | 3U), DaysPer400Years);
+            return 1 + (int)(100 * y100 + (r1 | 3) / DaysPer4Years);
+        }
+    }
+
+    public int Day
+    {
+        get
+        {
+            // r1 = (day number within 100-year period) * 4
+            uint r1 = (((uint)(UTicks / TicksPer6Hours) | 3U) + 1224) % DaysPer400Years;
+            ulong u2 = (ulong)Math.BigMul((int)EafMultiplier, (int)r1 | 3);
+            ushort daySinceMarch1 = (ushort)((uint)u2 / EafDivider);
+            int n3 = 2141 * daySinceMarch1 + 197913;
+            // Return 1-based day-of-month
+            return (ushort)n3 / 2141 + 1;
+        }
+    }
+
+    public int Hour => (int)((uint)(UTicks / TicksPerHour) % 24);
+
+    public int DayOfYear => 1 + (int)(((((uint)(UTicks / TicksPer6Hours) | 3U) % (uint)DaysPer400Years) | 3U) * EafMultiplier / EafDivider);
+
+    public int Month
+    {
+        get
+        {
+            // r1 = (day number within 100-year period) * 4
+            uint r1 = (((uint)(UTicks / TicksPer6Hours) | 3U) + 1224) % DaysPer400Years;
+            ulong u2 = (ulong)Math.BigMul((int)EafMultiplier, (int)r1 | 3);
+            ushort daySinceMarch1 = (ushort)((uint)u2 / EafDivider);
+            int n3 = 2141 * daySinceMarch1 + 197913;
+            return (ushort)(n3 >> 16) - (daySinceMarch1 >= March1BasedDayOfNewYear ? 12 : 0);
+        }
+    }
+
+    // Returns the millisecond part of this DateTime. The returned value
+    // is an integer between 0 and 999.
+    //
+    public int Millisecond => (int)((UTicks / TicksPerMillisecond) % 1000);
+
+    /// <summary>
+    /// The microseconds component, expressed as a value between 0 and 999.
+    /// </summary>
+    public int Microsecond => (int)((UTicks / TicksPerMicrosecond) % 1000);
+
+    /// <summary>
+    /// The nanoseconds component, expressed as a value between 0 and 900 (in increments of 100 nanoseconds).
+    /// </summary>
+    public int Nanosecond => (int)(UTicks % TicksPerMicrosecond) * 100;
+
+    /// <summary>
+    /// Returns the minute part of this DateTime. The returned value is
+    /// an integer between 0 and 59.
+    /// </summary>
+    public int Minute => (int)((UTicks / TicksPerMinute) % 60);
+
+
+
+    /// <summary>
+    /// // Returns the second part of this DateTime. The returned value is
+    /// an integer between 0 and 59.
+    /// </summary>
+    public int Second => (int)((UTicks / TicksPerSecond) % 60);
+
+
+    /// <summary>
+    /// Returns the tick count for this DateTime. The returned value is
+    /// the number of 100-nanosecond intervals that have elapsed since 1/1/0001
+    /// 12:00am.
+    /// </summary>
+    public readonly long Ticks => (long)(_dateData & TicksMask);
+
+
     public DateTime(long ticks)
     {
         //if ((ulong)ticks > MaxTicks) ThrowTicksOutOfRange();
@@ -115,6 +230,89 @@ public struct DateTime
         //if ((uint)kind > (uint)DateTimeKind.Local) ThrowInvalidKind();
         _dateData = (ulong)ticks | ((ulong)(uint)kind << KindShift);
     }
+
+    public DateTime(int year, int month, int day)
+    {
+        this._dateData = DateToTicks(year, month, day);
+    }
+
+
+    public DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+    {
+        this._dateData = Init(year, month, day, hour, minute, second, millisecond, DateTimeKind.Unspecified);
+    }
+
+
+    public DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, DateTimeKind kind)
+    {
+        this._dateData = DateTime.Init(year, month, day, hour, minute, second, millisecond, kind);
+    }
+
+    private static ulong Init(int year, int month, int day, int hour, int minute, int second, int millisecond, DateTimeKind kind = DateTimeKind.Unspecified)
+    {
+        if (millisecond >= 1000)
+        {
+            //DateTime.ThrowMillisecondOutOfRange();
+        }
+        if (kind > DateTimeKind.Local)
+        {
+            //DateTime.ThrowInvalidKind();
+        }
+        if (second != 60 || !SystemSupportsLeapSeconds)
+        {
+            ulong num = DateToTicks(year, month, day) + DateTime.TimeToTicks(hour, minute, second);
+            num += (ulong)(millisecond * 10000);
+            return num | (ulong)((ulong)((long)kind) << 62);
+        }
+        DateTime dateTime = new(year, month, day, hour, minute, 59, millisecond, kind);
+        //if (!DateTime.IsValidTimeWithLeapSeconds(year, month, day, hour, 59, kind))
+        //{
+        //    ThrowHelper.ThrowArgumentOutOfRange_BadHourMinuteSecond();
+        //}
+        return dateTime._dateData;
+    }
+
+    private static ulong TimeToTicks(int hour, int minute, int second)
+    {
+        if (hour >= 24 || minute >= 60 || second >= 60)
+        {
+            //ThrowHelper.ThrowArgumentOutOfRange_BadHourMinuteSecond();
+        }
+        int num = hour * 3600 + minute * 60 + second;
+        return (ulong)num * 10000000UL;
+    }
+
+    public static bool IsLeapYear(int year)
+    {
+        if (year < 1 || year > 9999)
+        {
+            //ThrowHelper.ThrowArgumentOutOfRange_Year();
+        }
+        return (year & 3) == 0 && ((year & 15) == 0 || year % 25 != 0);
+    }
+
+    private unsafe static ulong DateToTicks(int year, int month, int day)
+    {
+        if (year < 1 || year > 9999 || month < 1 || month > 12 || day < 1)
+        {
+            //ThrowHelper.ThrowArgumentOutOfRange_BadYearMonthDay();
+        }
+        ReadOnlySpan<uint> readOnlySpan = (IsLeapYear(year) ? DaysToMonth366 : DateTime.DaysToMonth365);
+        if (day > (int)(readOnlySpan[month] - readOnlySpan[month - 1]))
+        {
+            //ThrowHelper.ThrowArgumentOutOfRange_BadYearMonthDay();
+        }
+        uint num = DaysToYear((uint)year) + readOnlySpan[month - 1] + (uint)day - 1U;
+        return num * 864000000000UL;
+    }
+
+    private static uint DaysToYear(uint year)
+    {
+        uint num = year - 1U;
+        uint num2 = num / 100U;
+        return num * 1461U / 4U - num2 + num2 / 4U;
+    }
+
 }
 
 public enum DateTimeKind
