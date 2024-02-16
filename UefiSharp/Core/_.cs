@@ -31,10 +31,6 @@ internal unsafe class StartupCodeHelpersBalabala
         Console.WriteLine("Exception!");
     }
 
-    //[RuntimeExport("RhpNewFast")]
-    //static void 
-
-
     [RuntimeExport("__security_cookie")]
     static void __security_cookie()
     {
@@ -58,9 +54,10 @@ internal unsafe class StartupCodeHelpersBalabala
     }
 
     [RuntimeExport("RhpAssignRef")]
-    static void RhpAssignRef()
+    static unsafe void RhpAssignRef(void** address, void* obj)
     {
         Console.WriteLine("call RhpAssignRef");
+        *address = obj;
     }
 
     [RuntimeExport("RhpNewArray")] // new Array

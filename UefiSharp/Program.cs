@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using EFI;
 using EFI.BootServices;
+using Internal.Runtime;
 
 public unsafe class Program
 {
@@ -41,14 +43,13 @@ public unsafe class Program
         Console.Write("Current DateTime: ");
         Console.WriteLine(DateTime.Now);
 
-        // Console.WriteLine((nint)new object().GetPointer());
-
-        foreach (var item in "qaq")
+        foreach (var item in "abc1234")
         {
             Console.Write(item);
         }
 
-        Console.WriteLine(nint.MaxValue);
+        Console.WriteLine();
+
         while (true)
         {
             buffer.Clear();
@@ -74,6 +75,9 @@ public unsafe class Program
                 Console.Write("unknown input: ");
                 Console.WriteLine(buffer);
             }
+
+
         }
     }
 }
+

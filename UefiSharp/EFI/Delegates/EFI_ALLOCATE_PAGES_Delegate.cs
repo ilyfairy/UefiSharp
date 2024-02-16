@@ -5,9 +5,9 @@ namespace EFI.Delegates;
 /// <summary>
 /// Allocates memory pages from the system.
 /// </summary>
-public unsafe readonly struct EFI_ALLOCATE_PAGES_Delegate(delegate* unmanaged<EFI_ALLOCATE_TYPE, EFI_MEMORY_TYPE, nuint, nuint*, EFI_STATUS> fp)
+public unsafe readonly struct EFI_ALLOCATE_PAGES_Delegate(delegate* unmanaged<EFI_ALLOCATE_TYPE, EFI_MEMORY_TYPE, nuint, void**, EFI_STATUS> fp)
 {
-    public readonly delegate* unmanaged<EFI_ALLOCATE_TYPE, EFI_MEMORY_TYPE, nuint, nuint*, EFI_STATUS> FunctionPointer = fp;
+    public readonly delegate* unmanaged<EFI_ALLOCATE_TYPE, EFI_MEMORY_TYPE, nuint, void**, EFI_STATUS> FunctionPointer = fp;
 
     /// <summary>
     /// Allocates memory pages from the system.
@@ -27,5 +27,5 @@ public unsafe readonly struct EFI_ALLOCATE_PAGES_Delegate(delegate* unmanaged<EF
     /// <see cref="EFI_STATUS.EFI_OUT_OF_RESOURCES"/> The pages could not be allocated.<br/>
     /// <see cref="EFI_STATUS.EFI_NOT_FOUND"/> The requested pages could not be found.<br/>
     /// </returns>
-    public EFI_STATUS Invoke(EFI_ALLOCATE_TYPE Type, EFI_MEMORY_TYPE MemoryType, nuint Pages, nuint* Memory) => FunctionPointer(Type, MemoryType, Pages, Memory);
+    public EFI_STATUS Invoke(EFI_ALLOCATE_TYPE Type, EFI_MEMORY_TYPE MemoryType, nuint Pages, void** Memory) => FunctionPointer(Type, MemoryType, Pages, Memory);
 }

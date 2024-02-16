@@ -1,4 +1,5 @@
-﻿using EFI.BootServices;
+﻿using System.Runtime.InteropServices;
+using EFI.BootServices;
 
 namespace EFI.Delegates;
 
@@ -20,5 +21,5 @@ public unsafe readonly struct EFI_ALLOCATE_POOL_Delegate(delegate* unmanaged<EFI
     /// <see cref="EFI_STATUS.EFI_OUT_OF_RESOURCES"/> The pool requested could not be allocated.<br/>
     /// <see cref="EFI_STATUS.EFI_INVALID_PARAMETER"/> Buffer is NULL. PoolType is in the range EfiMaxMemoryType..0x6FFFFFFF. PoolType is EfiPersistentMemory.
     /// </returns>
-    public EFI_STATUS Invoke(EFI_MEMORY_TYPE PoolType, nuint Size, void** Buffer) => FunctionPointer(PoolType, Size, Buffer);
+    public EFI_STATUS Invoke(EFI_MEMORY_TYPE PoolType, nuint Size, [Out] void** Buffer) => FunctionPointer(PoolType, Size, Buffer);
 }

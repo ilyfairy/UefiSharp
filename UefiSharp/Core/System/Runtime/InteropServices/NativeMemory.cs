@@ -51,6 +51,7 @@ public static unsafe class NativeMemory
     public static void* Alloc(nuint size)
     {
         void* ptr;
+        //var result = systemTable->BootServices->AllocatePages.Invoke(EFI_ALLOCATE_TYPE.AllocateAnyPages, EFI_MEMORY_TYPE.EfiLoaderData, size, &ptr);
         var result = systemTable->BootServices->AllocatePool.Invoke(EFI_MEMORY_TYPE.EfiLoaderData, size, &ptr);
         if (!result.IsSuccess)
         {
@@ -62,6 +63,6 @@ public static unsafe class NativeMemory
 
     public static void Free(void* ptr)
     {
-        systemTable->BootServices->FreePool((UIntPtr)ptr);
+        systemTable->BootServices->FreePool.Invoke(ptr);
     }
 }

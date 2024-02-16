@@ -20,8 +20,7 @@
 
     <EntryPointSymbol>EfiMain</EntryPointSymbol>
     <!--<LinkerSubsystem>EFI_APPLICATION</LinkerSubsystem>-->
-    <!--<IlcSystemModule>CSharpEFI</IlcSystemModule>-->
-
+    <!--<IlcSystemModule>EfiSharp</IlcSystemModule>-->
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,10 +45,10 @@
 
   <!-- Build EFI -->
   <Target Name="IlcBuild" AfterTargets="Build">
-    <Exec Command="$(IlcExe) $(OutDir)$(MSBuildProjectName).dll -o $(OutDir)/$(MSBuildProjectName).obj --systemmodule $(MSBuildProjectName) -O"></Exec>
+    <Exec Command="$(IlcExe) $(OutDir)$(MSBuildProjectName).dll -o $(OutDir)$(MSBuildProjectName).obj --systemmodule $(MSBuildProjectName) -O"></Exec>
   </Target>
   <Target Name="BuildEFI" AfterTargets="IlcBuild">
-    <Exec Command="gcc -Wall -Wextra -e $(EntryPointSymbol) -nostdinc -nostdlib -fno-builtin -Wl,--subsystem,10 -o $(OutDir)BOOTX64.EFI $(OutDir)/$(MSBuildProjectName).obj" />
+    <Exec Command="gcc -Wall -Wextra -e $(EntryPointSymbol) -nostdinc -nostdlib -fno-builtin -Wl,--subsystem,10 -o $(OutDir)BOOTX64.EFI $(OutDir)$(MSBuildProjectName).obj" />
   </Target>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace EFI;
 
@@ -8,5 +9,6 @@ public static class RuntimeInitializer
     {
         Console.Initialize(systemTable);
         DateTime.Initialize(systemTable->RuntimeServices);
+        NativeMemory.Initialize(systemTable);
     }
 }

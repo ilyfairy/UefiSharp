@@ -21,15 +21,15 @@ public unsafe struct EFI_BOOT_SERVICES
     public EFI_FREE_PAGES_Delegate FreePages;
     public EFI_GET_MEMORY_MAP_Delegate GetMemoryMap;
     public EFI_ALLOCATE_POOL_Delegate AllocatePool;
-    public delegate* unmanaged<UIntPtr, UIntPtr> FreePool;
+    public EFI_FREE_POOL_Delegate FreePool;
 
     //// Event & Timer Services
-    //EFI_CREATE_EVENT CreateEvent;
-    //EFI_SET_TIMER SetTimer;
-    //EFI_WAIT_FOR_EVENT WaitForEvent;
-    //EFI_SIGNAL_EVENT SignalEvent;
-    //EFI_CLOSE_EVENT CloseEvent;
-    //EFI_CHECK_EVENT CheckEvent;
+    public EFI_CREATE_EVENT_Delegate CreateEvent;
+    public EFI_SET_TIMER_Delegate SetTimer;
+    public EFI_WAIT_FOR_EVENT_Delegate WaitForEvent;
+    public EFI_SIGNAL_EVENT_Delegate SignalEvent;
+    public EFI_CLOSE_EVENT_Delegate CloseEvent;
+    public EFI_CHECK_EVENT_Delegate CheckEvent;
 
     //// Protocol Handler Services
     //EFI_INSTALL_PROTOCOL_INTERFACE InstallProtocolInterface;
