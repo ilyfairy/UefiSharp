@@ -37,11 +37,19 @@ internal unsafe class StartupCodeHelpersBalabala
         Console.WriteLine("call __security_cookie");
     }
     
-
     [RuntimeExport("memset")]
     static unsafe void memset(void* addr, int c, int n)
     {
         NativeMemory.Fill(addr, (nuint)n, (byte)c);
+    }
+
+    [RuntimeExport("RhSpanHelpers_MemZero")]
+    static unsafe void MemZero(byte* ptr, nuint len)
+    {
+        for (nuint i = 0; i < len; i++)
+        {
+            ptr[i] = 0;
+        }
     }
 
     [RuntimeExport("RhpNewFast")] // new Object
